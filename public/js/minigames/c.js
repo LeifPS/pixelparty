@@ -76,7 +76,7 @@ export const chaseG = {
     let k = 0;
     const pl = makePlayers(parts, (q) => (q.team === 0 ? { x: 240, y: 172, solo: true, dash: 0, dcd: 0, dir: 0, moving: false }
       : (() => { const sp = [[50, 108], [430, 108], [240, 248]][k++ % 3]; return { x: sp[0], y: sp[1], solo: false, caught: false, at: 0, dir: 0, moving: false }; })()));
-    return { t: 0, dur: 28, pl, over: 0 };
+    return { t: 0, dur: 24, pl, over: 0 };
   },
   update(s, inp, dt) {
     s.t += dt;
@@ -86,11 +86,11 @@ export const chaseG = {
       if (p.solo) {
         if (s.t < 1.2) continue;
         p.dcd = Math.max(0, p.dcd - dt); p.dash = Math.max(0, p.dash - dt);
-        if (i.aP && p.dcd <= 0) { p.dash = 0.3; p.dcd = 3.5; }
-        moveBound(p, i, (p.dash > 0 ? 112 : 44) * p.m, dt, CX0, CX1, CY0, CY1);
+        if (i.aP && p.dcd <= 0) { p.dash = 0.28; p.dcd = 3.8; }
+        moveBound(p, i, (p.dash > 0 ? 110 : 45) * p.m, dt, CX0, CX1, CY0, CY1);
       } else if (!p.caught) {
-        moveBound(p, i, 62 * p.m, dt, CX0, CX1, CY0, CY1);
-        if (Math.hypot(p.x - mon.x, p.y - mon.y) < 12) { p.caught = true; p.at = s.t; }
+        moveBound(p, i, 66 * p.m, dt, CX0, CX1, CY0, CY1);
+        if (Math.hypot(p.x - mon.x, p.y - mon.y) < 11) { p.caught = true; p.at = s.t; }
       }
     }
     if (s.pl.every((p) => p.solo || p.caught)) s.over += dt;
@@ -100,7 +100,7 @@ export const chaseG = {
     const win = s.pl.every((p) => p.solo || p.caught) ? 0 : 1;
     return { ...ranking(s.pl, (p) => (p.solo ? (win === 0 ? 10 : 0) : win === 1 ? 10 + (p.caught ? 0 : 1) : 0)), winTeam: win };
   },
-  ai(s, slot, level) {
+  ai(s, slot, level, dt = 1 / 60) {
     const p = s.pl.find((q) => q.slot === slot), out = NOINP();
     const mon = s.pl.find((q) => q.solo);
     if (p.solo) {
@@ -113,17 +113,21 @@ export const chaseG = {
     }
     if (p.caught) return out;
     const d0 = Math.hypot(p.x - mon.x, p.y - mon.y);
-    const near = [100, 140, 190][level];
+    const near = [90, 165, 190][level];
     if (d0 > near) { if (Math.random() < 0.02) out.x = Math.random() < 0.5 ? 1 : -1; return out; }
+    p.aiT = (p.aiT || 0) - dt;
+    if (p.aiT > 0 && p.aiDir) { out.x = p.aiDir[0]; out.y = p.aiDir[1]; return out; }
+    p.aiT = [0.5, 0.32, 0.18][level] * (0.6 + Math.random() * 0.8);
     let best = [0, 0], bs = -1e9;
     for (let a = 0; a < 8; a++) {
       const ang = (a * Math.PI) / 4, dx = Math.cos(ang), dy = Math.sin(ang);
-      const nx = clamp(p.x + dx * 62 * 0.6, CX0, CX1), ny = clamp(p.y + dy * 62 * 0.6, CY0, CY1);
+      const nx = clamp(p.x + dx * 66 * 0.6, CX0, CX1), ny = clamp(p.y + dy * 66 * 0.6, CY0, CY1);
       let sc = Math.hypot(nx - mon.x, ny - mon.y);
-      sc -= Math.max(0, 40 - Math.min(nx - CX0, CX1 - nx, ny - CY0, CY1 - ny)) * (level === 0 ? 0.5 : 1.4);
+      sc -= Math.max(0, 40 - Math.min(nx - CX0, CX1 - nx, ny - CY0, CY1 - ny)) * [0.4, 1.1, 1.4][level];
+      sc -= Math.hypot(nx - (CX0 + CX1) / 2, ny - (CY0 + CY1) / 2) * [0, 0.25, 0.4][level];
       if (sc > bs) { bs = sc; best = [Math.round(dx), Math.round(dy)]; }
     }
-    out.x = best[0]; out.y = best[1];
+    p.aiDir = best; out.x = best[0]; out.y = best[1];
     return out;
   },
   render(c, s) {
