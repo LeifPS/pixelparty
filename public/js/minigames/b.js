@@ -277,7 +277,7 @@ export const hockeyG = {
     rect(c, AX0 - 2, AY0 - 3, AX1 - AX0 + 4, 3, C.gry); rect(c, AX0 - 2, AY1, AX1 - AX0 + 4, 3, C.gry);
     rect(c, AX0 - 3, AY0 - 3, 3, GY0 - AY0 + 3, C.gry); rect(c, AX0 - 3, GY1, 3, AY1 - GY1 + 3, C.gry);
     rect(c, AX1, AY0 - 3, 3, GY0 - AY0 + 3, C.gry); rect(c, AX1, GY1, 3, AY1 - GY1 + 3, C.gry);
-    text(c, s.score[0] + ' : ' + s.score[1], W / 2, 28, { align: 'c', s: 2, color: C.yel });
+    text(c, s.score[0] + ' : ' + s.score[1], W / 2, 46, { align: 'c', s: 2, color: C.yel });
     for (const p of s.pl) {
       c.fillStyle = PCOL[p.slot]; c.beginPath(); c.arc(Math.round(p.x), Math.round(p.y), PR, 0, 7); c.fill();
       c.fillStyle = 'rgba(255,255,255,.4)'; c.beginPath(); c.arc(Math.round(p.x) - 2, Math.round(p.y) - 3, 4, 0, 7); c.fill();
